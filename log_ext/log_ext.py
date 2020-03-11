@@ -43,31 +43,35 @@ def add_trace(level=5):
     :param level: level for trace, default:5
     :return: None
     """
+
     def trace(self, message, *args, **kws):
         if self.isEnabledFor(level):
             self._log(level, message, args, **kws)
 
     logging.Logger.trace = trace
     logging.addLevelName(level, "TRACE")
+    logging.TRACE = level
 
 
 class CustomFormatter(logging.Formatter):
-    """ A custom formatter which changes the message format if the message is debug """
-    def __init__(self, format_str='', datefmt_str='', detailed_format='', **kwargs):
-        self.detailed_fmt = detailed_format
+    """ A custom formatter which changes the message format if the message is debug or lower """
+
+    def __init__(self, format_str='', datefmt_str='', detailed_format_str='', **kwargs):
+        self.detailed_fmt = detailed_format_str
         logging.Formatter.__init__(self, format_str, datefmt_str)
 
     def format(self, record):
-        format_orig = self._fmt
-        if record.levelno != logging.DEBUG:
-            self._fmt = f'{format_orig}  {self.detailed_fmt}'
-        result = logging.Formatter.format(self, record)
-        self._fmt = format_orig
+        format_orig = self._style._fmt
+        if record.levelno <= logging.DEBUG:
+            self._style._fmt = f'{format_orig}{self.detailed_fmt}'
+        result = super().format(record)
+        self._style._fmt = format_orig
         return result
 
 
 class ColourStreamHandler(logging.StreamHandler):
     """ A custom stream handler which uses colorama colours to colour log messages depending on level """
+
     def __init__(self, colors=CONFIG['colors'], stream=None):
         super().__init__(stream)
         self.colors = colors
@@ -101,27 +105,29 @@ class ColourStreamHandler(logging.StreamHandler):
         return rtn_color
 
 
-def setup_logger(name, base_logger=None, log_dir='logs', cfg_file='log.cfg', config=CONFIG, trace_logging=True,
-                 clear_others=False, handles=None):
+def setup_logger(name='log', base_logger=None, log_dir='logs',
+                 cfg_file='log.yaml', config=None,
+                 trace_logging=True, clear_others=False, handles=None):
     """
-    Setup a logger (call instead of logging.getLogger())
-    :param name: logger name (string)
-    :param base_logger: logger to base off (logging.Logger)
-    :param log_dir: directory to store log files in (string)
-    :param cfg_file: configuration file to use (string)
-    :param config: configuration dictionary  (dict)
-    :param trace_logging: use trace logging (bool)
-    :param clear_others: clear existing handlers on the base logger (bool)
-    :param handles: also add these handlers to the base logger (list)
-    :return: logger
+    Setup a logger (call instead of logging.basicConfig)
+    :param name: (String) log file name
+    :param base_logger: (logging.Logger) logger to base off - uses root if not set
+    :param log_dir: (string | False) directory to store log files in - doesn't log to file if set to False
+    :param cfg_file: (string | False) configuration file to use, or false to skip creating a file
+    :param config: (Dict) configuration dictionary see CONFIG variable for example
+    :param trace_logging: (Bool) use trace logging
+    :param clear_others: (Bool) clear existing handlers on the base_logger
+    :param handles: (List) also add these handlers to the base_logger
+    :return: None
     """
     base_logger = base_logger if base_logger else logging.getLogger('')
     handles = handles if handles else []
+    config = config if config else CONFIG
 
     if trace_logging:
         add_trace()
 
-    if yaml:
+    if yaml and cfg_file:
         if os.path.isfile(cfg_file):
             try:
                 with open(cfg_file) as f:
@@ -135,31 +141,19 @@ def setup_logger(name, base_logger=None, log_dir='logs', cfg_file='log.cfg', con
         for handler in base_logger.handlers[:]:
             base_logger.removeHandler(handler)
 
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
-
-    log_file = os.path.join(log_dir, '{}.log'.format(os.path.basename(name).split('.')[0]))
-    file_h = logging.handlers.TimedRotatingFileHandler(log_file, when="W6", backupCount=4, delay=True)
-    console_h = ColourStreamHandler()
-
     formatter = CustomFormatter(**config)
+    console_h = ColourStreamHandler()
     console_h.setFormatter(formatter)
-    file_h.setFormatter(formatter)
+    handles.append(console_h)
 
-    handles.extend([console_h, file_h])
+    if log_dir:
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+
+        log_file = os.path.join(log_dir, '{}.log'.format(os.path.basename(name).split('.')[0]))
+        file_h = logging.handlers.TimedRotatingFileHandler(log_file, when="W6", backupCount=4, delay=True)
+        file_h.setFormatter(formatter)
+        handles.append(file_h)
 
     for handle in handles:
         base_logger.addHandler(handle)
-
-    return logging.getLogger(name)
-
-
-if __name__ == '__main__':
-    logger = setup_logger('testLogger', log_dir='test_logs')
-    logger.setLevel(1)
-    logger.critical('Critical')
-    logger.error('Error')
-    logger.warning('Warning')
-    logger.info('Info')
-    logger.debug('Debug')
-    logger.trace('Trace')
