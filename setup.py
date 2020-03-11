@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='log_ext',
     version='1.0.0',
-    packages=[''],
+    packages=['log_ext'],
     url='https://github.com/CpHarding/py_logging_extensions',
     license='MIT License',
     author='CpHarding',
