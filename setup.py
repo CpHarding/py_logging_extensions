@@ -1,12 +1,13 @@
-from setuptools import setup
+import setuptools
 
-setup(
+setuptools.setup(
     name='log_ext',
     version='1.0.0',
-    packages=['log_ext'],
+    packages=setuptools.find_packages(),
     url='https://github.com/CpHarding/py_logging_extensions',
     license='MIT License',
     author='CpHarding',
     author_email='',
-    description='An extension for standard python logging'
+    description='An extension for standard python logging',
+    python_requires='>=3.6',
 )
