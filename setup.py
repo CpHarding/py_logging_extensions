@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name='log_ext',
-    version='1.0.0',
+    version='1.0.1',
     packages=setuptools.find_packages(),
     url='https://github.com/CpHarding/py_logging_extensions',
     license='MIT License',
