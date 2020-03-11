@@ -9,7 +9,7 @@ Provides:
 * TRACE logging level added as a level below logging.DEBUG (set to 5)
 
 
-##Basic Usage
+## Basic Usage
 
 ```python
     import logging
