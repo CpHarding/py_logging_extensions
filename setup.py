@@ -9,5 +9,6 @@ setuptools.setup(
     author='CpHarding',
     author_email='',
     description='An extension for standard python logging',
+    long_description=open('README.md').read(),
     python_requires='>=3.6',
 )
