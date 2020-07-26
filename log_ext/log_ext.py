@@ -23,7 +23,7 @@ except ImportError:
 
 # Base configuration
 CONFIG = {
-    'date_fmt': '%Y-%m-%d_%H:%M:%S',
+    'date_fmt_str': '%Y-%m-%d_%H:%M:%S',
     'format_str': '%(asctime)17s-%(name)-12s-%(levelname)-8s-%(message)s',
     'detailed_format_str': '(%(module)s-%(funcName)s #%(lineno)d)',
     'colors': {
