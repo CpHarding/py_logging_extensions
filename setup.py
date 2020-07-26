@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='log_ext',
-    version='1.0.2',
+    version='1.0.3',
     packages=setuptools.find_packages(),
     url='https://github.com/CpHarding/py_logging_extensions',
     license='MIT License',
